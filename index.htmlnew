@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>P.S. I Crepe You — Spin to Win!</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Georgia,serif;background:linear-gradient(145deg,#fff0f5 0%,#fce4ec 50%,#f3e5f5 100%);min-height:100vh;overflow-x:hidden}
+  #app{min-height:100vh;display:flex;flex-direction:column;align-items:center}
+
+  /* header */
+  .hdr{width:100%;background:linear-gradient(135deg,#c2185b,#e8457a);padding:18px 40px;box-shadow:0 4px 24px #e8457a55;display:flex;justify-content:space-between;align-items:center}
+  .hdr-brand{color:#fff;font-weight:900;font-size:28px;letter-spacing:.5px;text-shadow:0 2px 10px #0003}
+  .hdr-sub{color:rgba(255,255,255,.75);font-size:13px;margin-top:4px}
+  .hdr-emoji{font-size:44px}
+
+  /* home */
+  .home{display:flex;flex-direction:column;align-items:center;gap:18px;padding:24px 32px 36px;width:100%;max-width:900px}
+  .headline{text-align:center;font-weight:900;font-size:44px;line-height:1.15;color:#2d0a14}
+  .headline span{color:#e8457a;text-shadow:0 2px 20px #e8457a44}
+  .tagline{color:#8b4460;font-size:15px;text-align:center}
+  .wheel-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center}
+  .pointer{position:absolute;top:-26px;left:50%;transform:translateX(-50%);z-index:10;filter:drop-shadow(0 2px 6px rgba(232,69,122,.8))}
+  .prize-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  .prize-chip{display:flex;flex-direction:column;align-items:center;gap:4px;background:rgba(255,255,255,.8);border-radius:16px;padding:10px 16px;border:1px solid #e8457a22;min-width:72px;backdrop-filter:blur(6px)}
+  .prize-chip span{font-size:22px}
+  .prize-chip b{font-size:12px;color:#2d0a14;text-align:center;font-weight:700}
+  .cta-btn{padding:22px 80px;background:linear-gradient(135deg,#e8457a,#c2185b);color:#fff;font-weight:900;font-size:24px;border:none;border-radius:20px;cursor:pointer;font-family:Georgia,serif;letter-spacing:1.5px;box-shadow:0 8px 32px #e8457a66;animation:pulsePink 2.2s ease-in-out infinite}
+  .cta-note{color:#c48ba0;font-size:11px;text-align:center}
+
+  /* spin screen */
+  .spin-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:32px;min-height:80vh;width:100%}
+  .spin-brand{color:#e8457a;font-weight:900;font-size:20px}
+  .spin-msg{font-weight:700;font-size:26px;color:#2d0a14}
+  .spin-sub{color:#e8457a;font-weight:700;font-size:18px;animation:breathe 1.8s ease-in-out infinite}
+
+  /* result */
+  .result-screen{display:flex;align-items:center;justify-content:center;padding:32px 24px;min-height:80vh;width:100%}
+  .result-inner{display:flex;flex-direction:column;align-items:center;max-width:560px;width:100%;text-align:center;gap:16px}
+  .result-emoji{font-size:100px;line-height:1;filter:drop-shadow(0 8px 20px rgba(232,69,122,.4));animation:bounceIn .6s cubic-bezier(.34,1.56,.64,1) both}
+  .you-won{font-size:13px;letter-spacing:4px;color:#c48ba0;font-weight:700}
+  .prize-name{font-weight:900;font-size:52px;line-height:1.1}
+  .code-card{width:100%;background:#fff;border-radius:24px;border:2px solid;box-shadow:0 12px 48px #e8457a1a;padding:28px 32px;position:relative;overflow:hidden}
+  .code-sheen{position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.5),transparent);animation:sheen 3s ease-in-out infinite;pointer-events:none}
+  .code-tag{font-size:10px;letter-spacing:4px;color:#e8457a;font-weight:700;margin-bottom:10px}
+  .code-val{font-family:monospace;font-weight:900;font-size:38px;letter-spacing:8px;color:#2d0a14;margin-bottom:16px}
+  .code-divider{height:1px;background:linear-gradient(90deg,transparent,#e8457a44,transparent);margin-bottom:16px}
+  .code-instr{font-size:14px;color:#8b4460;margin-bottom:4px}
+  .code-instr2{font-size:13px;color:#2d0a14}
+  .sms-card{width:100%;display:flex;gap:16px;align-items:flex-start;background:rgba(255,255,255,.85);border-radius:20px;padding:20px 24px;border:1px solid #e8457a22;backdrop-filter:blur(8px)}
+  .sms-icon{font-size:36px;flex-shrink:0}
+  .sms-title{font-weight:800;font-size:17px;color:#2d0a14;margin-bottom:4px}
+  .sms-sub{font-size:13px;color:#8b4460;line-height:1.6}
+  .reset-btn{background:none;border:1px solid #e8457a44;color:#c48ba0;padding:12px 32px;border-radius:14px;cursor:pointer;font-family:Georgia,serif;font-size:14px}
+
+  /* modal */
+  .overlay{position:fixed;inset:0;background:rgba(45,10,20,.6);z-index:200;display:flex;align-items:center;justify-content:center;padding:32px;backdrop-filter:blur(6px)}
+  .modal{background:#fff;border-radius:32px;padding:44px 40px 36px;width:100%;max-width:500px;text-align:center;position:relative;box-shadow:0 32px 80px #0005;animation:modalPop .4s cubic-bezier(.34,1.56,.64,1) both}
+  .modal-close{position:absolute;top:16px;right:20px;background:none;border:none;font-size:22px;color:#c48ba0;cursor:pointer}
+  .modal-icon{font-size:60px;margin-bottom:12px}
+  .modal-title{font-weight:900;font-size:28px;color:#2d0a14;margin-bottom:10px}
+  .modal-sub{color:#8b4460;font-size:15px;line-height:1.65;margin-bottom:24px}
+  .phone-input{width:100%;padding:18px;border-radius:18px;border:2px solid #f8bbd0;font-size:26px;color:#2d0a14;outline:none;font-family:Georgia,serif;text-align:center;letter-spacing:4px;margin-bottom:14px;background:#fff9fb}
+  .phone-input.err{border-color:#e8457a;box-shadow:0 0 0 4px #e8457a22}
+  .optin-row{display:flex;align-items:center;gap:14px;background:#fce4ec;border-radius:16px;padding:16px 18px;cursor:pointer;margin-bottom:12px;border:2px solid #f8bbd0;transition:border-color .2s;text-align:left}
+  .optin-row.on{border-color:#e8457a}
+  .cb{width:28px;height:28px;border-radius:8px;border:2px solid #e8457a;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;color:#fff}
+  .cb.on{background:#e8457a;border-color:#c2185b}
+  .cb-label{font-weight:700;font-size:15px;color:#2d0a14;margin-bottom:3px}
+  .cb-sub{font-size:12px;color:#8b4460}
+  .err-msg{color:#e8457a;font-size:13px;margin-bottom:8px}
+  .legal{font-size:11px;color:#c48ba0;line-height:1.6;margin-bottom:14px;text-align:left}
+  .spin-modal-btn{width:100%;padding:18px;background:linear-gradient(135deg,#e8457a,#c2185b);color:#fff;font-weight:900;font-size:21px;border:none;border-radius:20px;cursor:pointer;font-family:Georgia,serif;box-shadow:0 6px 24px #e8457a55}
+
+  /* sparkles */
+  .sparkles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .sparkle{position:absolute;border-radius:50%;animation:sparkleAnim 3s ease-in-out infinite}
+
+  /* confetti canvas */
+  #confetti{position:fixed;inset:0;pointer-events:none;z-index:300}
+
+  @keyframes pulsePink{0%,100%{box-shadow:0 8px 32px rgba(232,69,122,.5)}50%{box-shadow:0 8px 48px rgba(232,69,122,.85),0 0 0 10px rgba(232,69,122,.12)}}
+  @keyframes sheen{0%{left:-100%}60%,100%{left:150%}}
+  @keyframes bounceIn{from{opacity:0;transform:scale(.4) rotate(-10deg)}60%{transform:scale(1.15) rotate(5deg)}to{opacity:1;transform:none}}
+  @keyframes breathe{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.04)}}
+  @keyframes modalPop{from{opacity:0;transform:scale(.85) translateY(24px)}to{opacity:1;transform:none}}
+  @keyframes sparkleAnim{0%,100%{opacity:.1;transform:scale(.7)}50%{opacity:.4;transform:scale(1)}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+  .fade-in{animation:fadeUp .5s ease both}
+  button:active{transform:scale(.97)!important}
+</style>
+</head>
+<body>
+<canvas id="confetti" style="display:none"></canvas>
+<div id="app"></div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const GOOGLE_REVIEW_URL = "https://g.page/r/YOUR_GOOGLE_REVIEW_LINK"; // ← swap
+const STORE_NAME        = "P.S. I Crepe You";
+
+// ── PRIZES ────────────────────────────────────────────────────────────────────
+const PRIZES = [
+  {label:"10% Off",    emoji:"🏷️", colors:["#f9a8c9","#e8457a"], weight:14, tier:1},
+  {label:"20% Off",    emoji:"✂️",  colors:["#f06292","#c2185b"], weight:10, tier:2},
+  {label:"10% Off",    emoji:"🏷️", colors:["#f9a8c9","#e8457a"], weight:12, tier:1},
+  {label:"Free Coffee",emoji:"☕",  colors:["#ba68c8","#7b1fa2"], weight:11, tier:2},
+  {label:"20% Off",    emoji:"✂️",  colors:["#f06292","#c2185b"], weight:10, tier:2},
+  {label:"10% Off",    emoji:"🏷️", colors:["#f9a8c9","#e8457a"], weight:12, tier:1},
+  {label:"30% Off",    emoji:"🎉",  colors:["#e57373","#c62828"], weight:11, tier:3},
+  {label:"20% Off",    emoji:"✂️",  colors:["#f06292","#c2185b"], weight: 9, tier:2},
+  {label:"10% Off",    emoji:"🏷️", colors:["#f9a8c9","#e8457a"], weight: 9, tier:1},
+  {label:"40% Off",    emoji:"🔥",  colors:["#ff7043","#bf360c"], weight: 6, tier:3},
+  {label:"50% Off",    emoji:"💥",  colors:["#ffd54f","#f57f17"], weight: 4, tier:4},
+  {label:"Free Crepe", emoji:"🥞",  colors:["#ce93d8","#4a148c"], weight: 2, tier:4},
+];
+const SEG = PRIZES.length;
+const SEG_A = (Math.PI*2)/SEG;
+const TIER_COLOR = ["","#e8457a","#c2185b","#bf360c","#7b1fa2"];
+
+function pickPrize(){
+  const tot=PRIZES.reduce((s,p)=>s+p.weight,0);
+  let r=Math.random()*tot;
+  for(let i=0;i<PRIZES.length;i++){r-=PRIZES[i].weight;if(r<=0)return i;}
+  return 0;
+}
+function genCode(label){
+  const tag=label.replace(/[^a-zA-Z]/g,"").toUpperCase().slice(0,5);
+  return tag+"-"+Math.random().toString(36).substring(2,5).toUpperCase();
+}
+
+// ── WHEEL ─────────────────────────────────────────────────────────────────────
+let wheelAngle = 0;
+let idleRAF=null, spinRAF=null;
+let wheelCanvas=null, wheelCtx=null, wheelSize=560;
+
+function initWheel(canvas, size){
+  wheelCanvas=canvas; wheelSize=size;
+  wheelCanvas.width=size; wheelCanvas.height=size;
+  wheelCtx=canvas.getContext("2d");
+  drawWheel(wheelAngle);
+}
+
+function drawWheel(angle){
+  if(!wheelCtx)return;
+  const ctx=wheelCtx, s=wheelSize, R=s/2-10, cx=s/2, cy=s/2;
+  ctx.clearRect(0,0,s,s);
+
+  // outer ring
+  const rg=ctx.createLinearGradient(0,0,s,s);
+  rg.addColorStop(0,"#ffc0d4"); rg.addColorStop(.5,"#fff"); rg.addColorStop(1,"#f48fb1");
+  ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,R+9,0,Math.PI*2);
+  ctx.strokeStyle=rg; ctx.lineWidth=14; ctx.stroke(); ctx.restore();
+
+  // studs
+  for(let i=0;i<36;i++){
+    const a=(i/36)*Math.PI*2+angle*.05;
+    const sx=cx+Math.cos(a)*(R+9), sy=cy+Math.sin(a)*(R+9);
+    const sg=ctx.createRadialGradient(sx-1,sy-1,0,sx,sy,3.5);
+    sg.addColorStop(0,"#fff"); sg.addColorStop(1,"#f48fb1");
+    ctx.beginPath(); ctx.arc(sx,sy,3.5,0,Math.PI*2);
+    ctx.fillStyle=sg; ctx.fill();
+  }
+
+  // shadow
+  ctx.save(); ctx.shadowColor="rgba(232,69,122,.3)"; ctx.shadowBlur=40; ctx.shadowOffsetY=12;
+  ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.fillStyle="#fff"; ctx.fill(); ctx.restore();
+
+  // segments
+  PRIZES.forEach((p,i)=>{
+    const start=angle+i*SEG_A, end=start+SEG_A, mid=start+SEG_A/2;
+    const gx=cx+Math.cos(mid)*R*.5, gy=cy+Math.sin(mid)*R*.5;
+    const g=ctx.createRadialGradient(gx,gy,0,gx,gy,R*.85);
+    g.addColorStop(0,p.colors[0]); g.addColorStop(1,p.colors[1]);
+
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,R,start,end); ctx.closePath();
+    ctx.fillStyle=g; ctx.fill();
+
+    // sheen
+    ctx.save(); ctx.clip();
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,R,start,end); ctx.closePath();
+    const sh=ctx.createLinearGradient(cx+Math.cos(start)*R*.2,cy+Math.sin(start)*R*.2,cx+Math.cos(end)*R*.8,cy+Math.sin(end)*R*.8);
+    sh.addColorStop(0,"rgba(255,255,255,.18)"); sh.addColorStop(.5,"rgba(255,255,255,0)"); sh.addColorStop(1,"rgba(0,0,0,.08)");
+    ctx.fillStyle=sh; ctx.fill(); ctx.restore();
+
+    // divider
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+Math.cos(start)*R,cy+Math.sin(start)*R);
+    ctx.strokeStyle="rgba(255,255,255,.4)"; ctx.lineWidth=2; ctx.stroke();
+
+    // text
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(mid); ctx.textAlign="right";
+    ctx.shadowColor="rgba(0,0,0,.35)"; ctx.shadowBlur=5;
+    ctx.font="bold 16px Georgia,serif"; ctx.fillStyle="#fff";
+    ctx.fillText(p.label, R-22, 7);
+    ctx.font="22px serif"; ctx.fillText(p.emoji, R-22, -12);
+    ctx.restore();
+  });
+
+  // inner shadow
+  const iSh=ctx.createRadialGradient(cx,cy,R*.7,cx,cy,R);
+  iSh.addColorStop(0,"rgba(0,0,0,0)"); iSh.addColorStop(1,"rgba(0,0,0,.12)");
+  ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.fillStyle=iSh; ctx.fill();
+
+  // hub
+  const hR=48, hG=ctx.createRadialGradient(cx-hR*.3,cy-hR*.3,0,cx,cy,hR);
+  hG.addColorStop(0,"#fff"); hG.addColorStop(.4,"#fce4ec"); hG.addColorStop(.8,"#f8bbd0"); hG.addColorStop(1,"#e8457a");
+  ctx.save(); ctx.shadowColor="rgba(0,0,0,.3)"; ctx.shadowBlur=16;
+  ctx.beginPath(); ctx.arc(cx,cy,hR,0,Math.PI*2); ctx.fillStyle=hG; ctx.fill(); ctx.restore();
+  ctx.beginPath(); ctx.arc(cx,cy,hR,0,Math.PI*2); ctx.strokeStyle="#fff"; ctx.lineWidth=3; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,hR-3,0,Math.PI*2); ctx.strokeStyle="#e8457a"; ctx.lineWidth=2; ctx.stroke();
+  ctx.fillStyle="#c2185b"; ctx.textAlign="center"; ctx.font="bold 11px Georgia,serif";
+  ctx.shadowColor="transparent";
+  ctx.fillText("P.S.I",cx,cy-3); ctx.fillText("CREPE",cx,cy+11);
+}
+
+function startIdle(){
+  cancelAnimationFrame(idleRAF);
+  const tick=()=>{ wheelAngle+=0.004; drawWheel(wheelAngle); idleRAF=requestAnimationFrame(tick); };
+  idleRAF=requestAnimationFrame(tick);
+}
+function stopIdle(){ cancelAnimationFrame(idleRAF); }
+
+function spinWheel(targetIdx, onDone){
+  stopIdle();
+  const targetMid=-(targetIdx*SEG_A+SEG_A/2)-Math.PI/2;
+  const spins=(7+Math.random()*4)*Math.PI*2;
+  const start0=wheelAngle;
+  const delta=spins+((targetMid-start0)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
+  const dur=5500, t0=performance.now();
+  const animate=(now)=>{
+    const t=Math.min((now-t0)/dur,1);
+    const ease=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+    wheelAngle=start0+delta*ease;
+    drawWheel(wheelAngle);
+    if(t<1){ spinRAF=requestAnimationFrame(animate); } else { onDone(); }
+  };
+  spinRAF=requestAnimationFrame(animate);
+}
+
+// ── POINTER SVG ───────────────────────────────────────────────────────────────
+function makePointerSVG(){
+  return `<svg width="40" height="56" viewBox="0 0 32 44" style="filter:drop-shadow(0 2px 6px rgba(232,69,122,.8))">
+    <defs><linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#f48fb1"/>
+    </linearGradient></defs>
+    <polygon points="16,40 3,4 29,4" fill="#e8457a" stroke="#fff" stroke-width="2"/>
+    <polygon points="16,36 6,8 26,8" fill="url(#pg)" opacity="0.5"/>
+    <circle cx="16" cy="7" r="5" fill="#fff" stroke="#e8457a" stroke-width="2"/>
+    <circle cx="16" cy="7" r="2.5" fill="#e8457a"/>
+  </svg>`;
+}
+
+// ── CONFETTI ──────────────────────────────────────────────────────────────────
+function launchConfetti(){
+  const c=document.getElementById("confetti");
+  c.style.display="block"; c.width=window.innerWidth; c.height=window.innerHeight;
+  const ctx=c.getContext("2d");
+  const cols=["#e8457a","#f48fb1","#fce4ec","#c2185b","#fff","#fbbf24","#ce93d8","#ff7043"];
+  const shapes=["rect","circle","star"];
+  const pieces=Array.from({length:140},()=>({
+    x:Math.random()*c.width, y:-40-Math.random()*200, r:5+Math.random()*9,
+    col:cols[Math.floor(Math.random()*cols.length)],
+    vx:-3+Math.random()*6, vy:2+Math.random()*6,
+    ang:Math.random()*360, spin:-5+Math.random()*10,
+    shape:shapes[Math.floor(Math.random()*3)]
+  }));
+  let raf; const start=performance.now();
+  const tick=(now)=>{
+    const el=now-start, fade=Math.max(0,1-(el-3000)/1500);
+    ctx.clearRect(0,0,c.width,c.height);
+    pieces.forEach(p=>{
+      ctx.save(); ctx.globalAlpha=fade; ctx.translate(p.x,p.y); ctx.rotate(p.ang*Math.PI/180); ctx.fillStyle=p.col;
+      if(p.shape==="rect"){ ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r); }
+      else if(p.shape==="circle"){ ctx.beginPath();ctx.arc(0,0,p.r/2,0,Math.PI*2);ctx.fill(); }
+      else{
+        ctx.beginPath();
+        for(let s=0;s<5;s++){const a=s*Math.PI*2/5-Math.PI/2,a2=a+Math.PI/5;
+          s===0?ctx.moveTo(Math.cos(a)*p.r,Math.sin(a)*p.r):ctx.lineTo(Math.cos(a)*p.r,Math.sin(a)*p.r);
+          ctx.lineTo(Math.cos(a2)*p.r*.4,Math.sin(a2)*p.r*.4);}
+        ctx.closePath();ctx.fill();
+      }
+      ctx.restore();
+      p.x+=p.vx; p.y+=p.vy; p.ang+=p.spin; p.vy+=.08;
+    });
+    if(el<4500){raf=requestAnimationFrame(tick);}else{c.style.display="none";}
+  };
+  raf=requestAnimationFrame(tick);
+}
+
+// ── PLAYED STORAGE ────────────────────────────────────────────────────────────
+function hasPlayed(digits){
+  try{const d=JSON.parse(localStorage.getItem("psicy_v3")||"{}");return d[digits]===new Date().toDateString();}catch{return false;}
+}
+function markPlayed(digits){
+  try{const d=JSON.parse(localStorage.getItem("psicy_v3")||"{}");d[digits]=new Date().toDateString();localStorage.setItem("psicy_v3",JSON.stringify(d));}catch{}
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+const app=document.getElementById("app");
+let currentScreen="home", currentPrize=null, currentCode="";
+
+function render(screen){
+  currentScreen=screen;
+  stopIdle(); cancelAnimationFrame(spinRAF);
+
+  if(screen==="home")     renderHome();
+  else if(screen==="spin") renderSpin();
+  else if(screen==="result") renderResult();
+}
+
+function renderHome(){
+  const ws=Math.min(560, Math.max(300, Math.min(window.innerWidth,window.innerHeight)-260));
+  app.innerHTML=`
+  <div class="hdr">
+    <div><div class="hdr-brand">P.S. I Crepe You</div><div class="hdr-sub">Riverside, CA · Fresh Crêpes</div></div>
+    <div class="hdr-emoji">🥞</div>
+  </div>
+  <div class="home fade-in">
+    <div class="headline">Spin for <span>FREE FOOD</span> &amp; Discounts!</div>
+    <div class="tagline">One free spin per visit · Instant prize · No purchase required</div>
+    <div class="wheel-wrap">
+      <div class="pointer">${makePointerSVG()}</div>
+      <canvas id="wc"></canvas>
+    </div>
+    <div class="prize-row">
+      ${[["🏷️","10% Off"],["✂️","20% Off"],["☕","Free Coffee"],["🎉","30% Off"],["🔥","40% Off"],["💥","50% Off"],["🥞","Free Crepe"]].map(([e,l])=>`<div class="prize-chip"><span>${e}</span><b>${l}</b></div>`).join("")}
+    </div>
+    <button class="cta-btn" onclick="openModal()">🎰 TAP TO SPIN!</button>
+    <div class="cta-note">Free · One spin per visit</div>
+  </div>`;
+  const ws2=Math.min(560,Math.max(300,Math.min(window.innerWidth*.85,window.innerHeight-280)));
+  initWheel(document.getElementById("wc"), ws2);
+  startIdle();
+}
+
+function renderSpin(){
+  const ws=Math.min(620,Math.max(300,Math.min(window.innerWidth*.85,window.innerHeight-200)));
+  app.innerHTML=`
+  <div class="spin-screen fade-in">
+    <div class="spin-brand">P.S. I Crepe You 🥞</div>
+    <div class="spin-msg" id="spin-msg">Get ready!</div>
+    <div class="wheel-wrap">
+      <div class="pointer">${makePointerSVG()}</div>
+      <canvas id="wc"></canvas>
+    </div>
+    <div id="spin-sub" style="display:none" class="spin-sub">Hold your breath… 🍀</div>
+  </div>`;
+  initWheel(document.getElementById("wc"), ws);
+  setTimeout(()=>{
+    document.getElementById("spin-msg").textContent="✨ Come on lucky spin…";
+    document.getElementById("spin-sub").style.display="block";
+    const idx=window._spinTarget;
+    spinWheel(idx,()=>{
+      currentPrize=PRIZES[idx];
+      currentCode=genCode(currentPrize.label);
+      launchConfetti();
+      setTimeout(()=>render("result"),700);
+    });
+  },400);
+}
+
+function renderResult(){
+  const p=currentPrize, ac=TIER_COLOR[p.tier]||"#e8457a";
+  app.innerHTML=`
+  <div class="result-screen fade-in">
+    <div class="result-inner">
+      <div class="result-emoji">${p.emoji}</div>
+      <div class="you-won">🎉 YOU WON</div>
+      <div class="prize-name" style="color:${ac}">${p.label}!</div>
+      <div class="code-card" style="border-color:${ac}88">
+        <div class="code-sheen"></div>
+        <div class="code-tag">PRIZE CODE</div>
+        <div class="code-val">${currentCode}</div>
+        <div class="code-divider"></div>
+        <div class="code-instr">Show this screen to your cashier</div>
+        <div class="code-instr2">Tell them: <strong>"${p.label}"</strong> — Code: <strong>${currentCode}</strong></div>
+      </div>
+      <div class="sms-card">
+        <div class="sms-icon">💬</div>
+        <div>
+          <div class="sms-title">Check your texts!</div>
+          <div class="sms-sub">We just sent you a link to leave us a Google review. It means the world to our small family business. 💕</div>
+        </div>
+      </div>
+      <button class="reset-btn" onclick="render('home')">← New Customer</button>
+    </div>
+  </div>`;
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+function openModal(){
+  const overlay=document.createElement("div");
+  overlay.className="overlay"; overlay.id="modal-overlay";
+  overlay.onclick=(e)=>{ if(e.target===overlay) closeModal(); };
+  overlay.innerHTML=`
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-icon">🎰</div>
+    <div class="modal-title">One quick step!</div>
+    <div class="modal-sub">Enter your number and we'll text you your prize + a link to share the love. 💕</div>
+    <input class="phone-input" id="phone-in" type="tel" inputmode="numeric" placeholder="(951) 555-0000" oninput="fmtPhone(this)" autocomplete="off"/>
+    <div class="optin-row" id="optin-row" onclick="toggleOptin()">
+      <div class="cb" id="cb-box"></div>
+      <div>
+        <div class="cb-label">Text me my prize &amp; deals 🎁</div>
+        <div class="cb-sub">Max 2 msgs/month · Reply STOP anytime</div>
+      </div>
+    </div>
+    <div id="modal-err" class="err-msg" style="display:none"></div>
+    <div class="legal">By tapping Spin, you consent to receive marketing SMS from ${STORE_NAME}. Msg &amp; data rates may apply.</div>
+    <button class="spin-modal-btn" onclick="submitSpin()">🎰 Spin the Wheel!</button>
+  </div>`;
+  document.body.appendChild(overlay);
+  setTimeout(()=>document.getElementById("phone-in").focus(),100);
+}
+
+function closeModal(){
+  const o=document.getElementById("modal-overlay");
+  if(o) o.remove();
+}
+
+let _agreed=false;
+function toggleOptin(){
+  _agreed=!_agreed;
+  const cb=document.getElementById("cb-box");
+  const row=document.getElementById("optin-row");
+  cb.textContent=_agreed?"✓":"";
+  cb.className="cb"+(_agreed?" on":"");
+  row.className="optin-row"+(_agreed?" on":"");
+}
+
+function fmtPhone(el){
+  const d=el.value.replace(/\D/g,"").slice(0,10);
+  el.value=d.length<=3?d:d.length<=6?`(${d.slice(0,3)}) ${d.slice(3)}`:`(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`;
+}
+
+function showErr(msg){
+  const e=document.getElementById("modal-err");
+  if(!e)return; e.textContent=msg; e.style.display="block";
+}
+
+function submitSpin(){
+  const inp=document.getElementById("phone-in");
+  const digits=inp?inp.value.replace(/\D/g,""):"";
+  if(digits.length<10){ showErr("Please enter a valid 10-digit number."); inp.className="phone-input err"; return; }
+  if(!_agreed){ showErr("Please agree to receive your prize by text."); return; }
+  if(hasPlayed(digits)){ alert("You already spun today! Come back next visit 😄"); closeModal(); return; }
+  markPlayed(digits);
+  // SMS hook (swap with Twilio backend POST)
+  console.log(`[SMS→${digits}] Thanks for spinning at P.S. I Crepe You! 🥞 Leave us a review: ${GOOGLE_REVIEW_URL}`);
+  _agreed=false;
+  window._spinTarget=pickPrize();
+  closeModal();
+  render("spin");
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+render("home");
+window.addEventListener("resize",()=>{ if(currentScreen==="home") renderHome(); });
+</script>
+</body>
+</html>
